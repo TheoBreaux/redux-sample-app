@@ -1,4 +1,4 @@
-import { createSlice, nanoid, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { client } from '../../api/client'
 
 const initialState = {
@@ -12,6 +12,14 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
   return response.data
 })
 
+export const addNewPost = createAsyncThunk(
+  'posts/addNewPost',
+  async (initialPost) => {
+    const response = await client.get('/fakeApi/posts', initialPost)
+    return response.data
+  }
+)
+
 const postsSlice = createSlice({
   name: 'posts',
   initialState: initialState,
@@ -23,20 +31,20 @@ const postsSlice = createSlice({
         existingPost.reactions[reaction]++
       }
     },
-    postAdded(state, action) {
-      state.posts.push(action.payload)
-    },
-    prepare(title, content, userId) {
-      return {
-        payload: {
-          id: nanoid(),
-          date: new Date().toISOString(),
-          title,
-          content,
-          user: userId,
-        },
-      }
-    },
+    // postAdded(state, action) {
+    //   state.posts.push(action.payload)
+    // },
+    // prepare(title, content, userId) {
+    //   return {
+    //     payload: {
+    //       id: nanoid(),
+    //       date: new Date().toISOString(),
+    //       title,
+    //       content,
+    //       user: userId,
+    //     },
+    //   }
+    // },
     postUpdated(state, action) {
       const { id, title, content } = action.payload
       const existingPost = state.posts.find((post) => post.id === id)
@@ -45,6 +53,23 @@ const postsSlice = createSlice({
         existingPost.content = content
       }
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(addNewPost.fulfilled, (state, action) => {
+        state.posts.push(action.payload)
+      })
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = 'loading'
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.posts = state.posts.concat(action.payload)
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message
+      })
   },
 })
 
