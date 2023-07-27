@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom'
 import PostAuthor from './PostAuthor'
 import TimeAgo from './TimeAgo'
 import ReactionButtons from './ReactionButtons'
+import { selectAllPosts } from './postsSlice'
 
 const PostsList = () => {
-  const posts = useSelector((state) => state.posts)
+  const posts = useSelector(selectAllPosts)
 
   const orderedPosts = posts
     .slice()
@@ -21,7 +22,7 @@ const PostsList = () => {
       <Link to={`/posts/${post.id}`} className="button muted-button">
         View Post
       </Link>
-      <ReactionButtons post={post}/>
+      <ReactionButtons post={post} />
     </article>
   ))
 
